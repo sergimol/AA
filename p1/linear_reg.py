@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import copy
 import math
@@ -25,10 +26,9 @@ def compute_cost(x, y, w, b):
     """
 
     total_cost = 0
-    m = 0
-    for i in x:
-        total_cost += pow((w * i + b) - y[m], 2)
-        m += 1
+    m = x.shape[0]
+    for i in range(m):
+        total_cost += pow((w * x[i] + b) - y[i], 2)
 
     total_cost /= (2 * m)
     return total_cost
@@ -51,12 +51,11 @@ def compute_gradient(x, y, w, b):
 
     dj_dw = 0
     dj_db = 0
-    m = 0
+    m = x.shape[0]
 
-    for i in x:
-        dj_dw += ((w * i + b) - y[m]) * i
-        dj_db += (w * i + b) - y[m]
-        m += 1
+    for i in range[m]:
+        dj_dw += ((w * x[i] + b) - y[i]) * x[i]
+        dj_db += (w * x[i] + b) - y[i]
 
     dj_dw /= m
     dj_db /= m
@@ -103,11 +102,22 @@ def gradient_descent(x, y, w_in, b_in, cost_function, gradient_function, alpha, 
             cost = cost_function(x, y, w, b)
             J_history.append(cost)
 
-        if i % math.ceil(num_iters, 10) == 0:
-            print()
+        #if i % math.ceil(num_iters, 10) == 0:
+         #   print()
 
-    print(w, b)
     return w, b, J_history
 
+def plot_predictions(x, y, w, b):
+    m = x.shape[0]
+    predicted = np.zeros(m)
+
+    for i in range(m):
+        predicted[i] = w * x[i] + b
+    
+    plt.plot(x, predicted, c="b")
+
+    plt.scatter(x, y, marker='x', c ='r')
+
 x, y = load_data()
-gradient_descent(x, y, 0, 0, compute_cost, compute_gradient, 0.01, 1500)
+w, b, J_History = gradient_descent(x, y, 0, 0, compute_cost, compute_gradient, 0.01, 1500)
+plot_predictions(w, y, x, b)
