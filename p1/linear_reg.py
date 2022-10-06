@@ -53,7 +53,7 @@ def compute_gradient(x, y, w, b):
     dj_db = 0
     m = x.shape[0]
 
-    for i in range[m]:
+    for i in range(m):
         dj_dw += ((w * x[i] + b) - y[i]) * x[i]
         dj_db += (w * x[i] + b) - y[i]
 
@@ -87,7 +87,7 @@ def gradient_descent(x, y, w_in, b_in, cost_function, gradient_function, alpha, 
           primarily for graphing later
     """
 
-    m = len(x)
+    #m = len(x)
 
     J_history = []
     w = copy.deepcopy(w_in)
@@ -107,7 +107,7 @@ def gradient_descent(x, y, w_in, b_in, cost_function, gradient_function, alpha, 
 
     return w, b, J_history
 
-def plot_predictions(x, y, w, b):
+def plot_predictions(x, y, w, b):    
     m = x.shape[0]
     predicted = np.zeros(m)
 
@@ -117,7 +117,9 @@ def plot_predictions(x, y, w, b):
     plt.plot(x, predicted, c="b")
 
     plt.scatter(x, y, marker='x', c ='r')
+    
+    plt.savefig("fig/predicciones.pdf")
 
 x, y = load_data()
 w, b, J_History = gradient_descent(x, y, 0, 0, compute_cost, compute_gradient, 0.01, 1500)
-plot_predictions(w, y, x, b)
+plot_predictions(x, y, w, b)
