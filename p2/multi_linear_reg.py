@@ -1,7 +1,11 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import copy
 import math
+from public_tests import compute_gradient_test
+from public_tests import compute_cost_test
 
+from utils import load_data
 
 def zscore_normalize_features(X):
     """
@@ -15,6 +19,12 @@ def zscore_normalize_features(X):
       mu (ndarray (n,))     : mean of each feature
       sigma (ndarray (n,))  : standard deviation of each feature
     """
+    X_norm = np.zeros((len(X), len(X[0])))
+    mu = np.mean(X, 0)
+    sigma = np.std(X, 0)
+
+    for i in range(len(X)):
+      X_norm[i] = pow(X[i] - mu, 2) / sigma
 
     return (X_norm, mu, sigma)
 
@@ -30,6 +40,13 @@ def compute_cost(X, y, w, b):
     Returns
       cost (scalar)    : cost
     """
+
+    cost = 0
+    m = X.shape[0]
+    for i in range(len(X)):
+      cost += pow((np.dot(w, X[i]) + b) - y[i], 2)
+
+    cost /= (2 * m)
 
     return cost
 
@@ -47,6 +64,17 @@ def compute_gradient(X, y, w, b):
       dj_db : (scalar)             The gradient of the cost w.r.t. the parameter b. 
     """
 
+    dj_dw = 0
+    dj_db = 0
+    m = X.shape[0]
+
+    for i in range(len(X)):
+        dj_dw += ((np.dot(w, X[i]) + b) - y[i]) * X[i]
+        dj_db += (np.dot(w, X[i]) + b) - y[i]
+
+
+    dj_dw /= m
+    dj_db /= m
     return dj_db, dj_dw
 
 
@@ -74,4 +102,33 @@ def gradient_descent(X, y, w_in, b_in, cost_function,
           primarily for graphing later
     """
 
+    J_history = []
+    w = copy.deepcopy(w_in)
+    b = b_in
+
+    for i in range(num_iters):
+        dj_dw, dj_db = gradient_function(X, y ,w, b)
+        w -= alpha * dj_dw
+        b -= alpha * dj_db
+
+        if i < 100000:
+            cost = cost_function(X, y, w, b)
+            J_history.append(cost)
+
+        #if i % math.ceil(num_iters, 10) == 0:
+         #   print()
+
     return w, b, J_history
+
+X, y = load_data()
+#X_norm, mu, sigma = zscore_normalize_features(X)
+#compute_cost_test(compute_cost)
+#compute_gradient_test(compute_gradient)
+gradient_descent(X, y, np.zeros(len(X)), 0, compute_cost, compute_gradient, 0.1, 1000)
+
+X_features = ['size(sqft)', 'bedrooms', 'floors', 'age']
+fig, ax = plt.subplots(1, 4, figsize=(25, 5), sharey=True)
+for i in range(len(ax)):
+  ax[i].scatter(X[:, i], y)
+  ax[i].set_xlabel(X_features[i])
+ax[0].set_ylabel("Price (1000's)")
