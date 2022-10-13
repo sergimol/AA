@@ -69,8 +69,8 @@ def compute_gradient(X, y, w, b):
     m = X.shape[0]
 
     for i in range(len(X)):
-        dj_dw += ((np.dot(w, X[i]) + b) - y[i]) * X[i]
-        dj_db += (np.dot(w, X[i]) + b) - y[i]
+      dj_dw += ((np.dot(w, X[i]) + b) - y[i]) * X[i]
+      dj_db += (np.dot(w, X[i]) + b) - y[i]
 
 
     dj_dw /= m
@@ -114,9 +114,6 @@ def gradient_descent(X, y, w_in, b_in, cost_function,
         if i < 100000:
             cost = cost_function(X, y, w, b)
             J_history.append(cost)
-
-        #if i % math.ceil(num_iters, 10) == 0:
-         #   print()
 
     return w, b, J_history
 
