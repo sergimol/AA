@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def load_data():
+    data = np.loadtxt("data/ex2data2.txt", delimiter=',', skiprows=1)
+    X = data[:, :2]
+    y = data[:, 2]
+
+    return X, y
 
 def plot_data(X, y, pos_label="y=1", neg_label="y=0"):
     positive = y == 1

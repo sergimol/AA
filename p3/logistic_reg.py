@@ -1,7 +1,6 @@
 import numpy as np
 import copy
-from public_tests import predict_test
-from public_tests import compute_gradient_test
+from utils import load_data, plot_decision_boundary
 
 def sigmoid(z):
     """
@@ -87,8 +86,21 @@ def compute_cost_reg(X, y, w, b, lambda_=1):
     Returns:
       total_cost: (scalar)         cost 
     """
+    total_cost = 0
+    m = X.shape[0]
 
-    #return total_cost
+    for i in range(len(X)):
+      total_cost += (-y[i] * np.log(sigmoid(np.dot(w, X[i]) + b))) - (1 - y[i]) * np.log(1 - sigmoid(np.dot(w, X[i]) + b))
+    
+    w_sum = 0
+    for j in range(len(w)):
+      w_sum += pow(w[j], 2)
+    
+    total_cost /= m
+    w_sum = w_sum * lambda_ / (2*m)
+
+    total_cost += w_sum
+    return total_cost
 
 
 def compute_gradient_reg(X, y, w, b, lambda_=1):
@@ -106,8 +118,20 @@ def compute_gradient_reg(X, y, w, b, lambda_=1):
       dj_dw: (ndarray Shape (n,)) The gradient of the cost w.r.t. the parameters w. 
 
     """
+    dj_dw = 0
+    dj_db = 0
+    m = X.shape[0]
 
-    #return dj_db, dj_dw
+    for i in range(len(X)):
+        dj_dw += (sigmoid(np.dot(w, X[i]) + b) - y[i]) * X[i]
+        dj_db += (sigmoid(np.dot(w, X[i]) + b)) - y[i]
+
+    dj_dw /= m
+    for j in range(len(w)):
+      dj_dw[j] += (w[j] * lambda_ / m)
+      
+    dj_db /= m
+    return dj_db, dj_dw
 
 
 #########################################################################
@@ -177,4 +201,8 @@ def predict(X, w, b):
       p[i] = sigmoid(np.dot(w, X[i]) + b)
 
     p = np.around(p)
-    return p
+    return p  
+
+X, y = load_data()
+w, b, J_history = gradient_descent(X, y, np.zeros(len(X[0])), 1, compute_cost_reg, compute_gradient_reg, 0.01, 10000, 0.01)
+plot_decision_boundary(w, b, X, y)
