@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 import scipy.io as sio
-from public_tests import compute_gradient_reg_test
-from public_tests import compute_cost_reg_test
+#from public_tests import compute_gradient_reg_test
+#from public_tests import compute_cost_reg_test
 
 from utils import displayData
 
@@ -37,10 +37,9 @@ def compute_cost_reg(X, y, w, b, lambda_=1):
     Returns:
       total_cost: (scalar)         cost 
     """
-    m = X.shape[0]
-    print(X)
-    print(w)
-    total_cost = np.sum((-y * np.log(sigmoid(X.dot(w) + b))) - (1 - y) * np.log(1 - sigmoid(X.dot(w) + b)))
+    m = len(X)
+    sig = sigmoid(X @ w + b)
+    total_cost = np.sum(-y * np.log(sig) - (1 - y) * np.log(1 - sig))
     w_sum = np.sum(pow(w, 2))    
     total_cost /= m
     w_sum = w_sum * lambda_ / (2*m)
@@ -64,16 +63,14 @@ def compute_gradient_reg(X, y, w, b, lambda_=1):
       dj_dw: (ndarray Shape (n,)) The gradient of the cost w.r.t. the parameters w. 
 
     """
-    m = X.shape[0]
-    sig = (sigmoid(X.dot(w) + b) - y)
-    dj_dw = sig.dot(X)
-    dj_db = np.sum(sig)
+    dj_db = 0
+    dj_dw = np.zeros(len(X[0]))
+    m = len(X) 
 
-    dj_dw /= m
-    dj_dw += (w * lambda_ / m)
-      
-    dj_db /= m
-    return dj_db, dj_dw
+    dj_db = np.sum(sigmoid(X @ w + b) - y)
+    dj_dw = (sigmoid(X @ w + b) - y) @ X
+
+    return dj_db / m, (dj_dw / m) + (np.dot(np.divide(lambda_, m), w))
 
 #########################################################################
 # gradient descent
@@ -107,13 +104,11 @@ def gradient_descent(X, y, w_in, b_in, cost_function, gradient_function, alpha, 
     b = b_in
 
     for i in range(num_iters):
-        dj_dw, dj_db = gradient_function(X, y ,w, b)
+        dj_db, dj_dw = gradient_function(X, y ,w, b, lambda_)
         w -= alpha * dj_dw
         b -= alpha * dj_db
-
-        if i < 100000:
-            cost = cost_function(X, y, w, b)
-            J_history.append(cost)
+        J_history += [cost_function(X, y, w, b, lambda_)]
+            
 
     return w, b, J_history
     
@@ -149,13 +144,14 @@ def oneVsAll(X, y, n_labels, lambda_):
          (ie. `n_labels`) and n is number of features without the bias.
      """
 
-    m = X.shape[0]
-    all_theta = []    
+    all_theta = np.zeros((n_labels, X.shape[1] + 1))   
     for i in range(n_labels):
-        all_theta[i] = (y == i)
-        w_out, b_out, J_history = gradient_descent(X, y, all_theta[i][:m[1]], all_theta[i][m[1]], compute_cost_reg, compute_gradient_reg, 0.01, 1500, lambda_)
-        all_theta[i][:m[1]] = w_out
-        all_theta[i][m[1]] = b_out
+        w = np.zeros(len(X[0]))
+        b = 0
+        y_aux = np.where(y == i, 1, 0)
+        w_out, b_out, J_history = gradient_descent(X, y_aux, w, b, compute_cost_reg, compute_gradient_reg, 1, 1500, lambda_)
+        all_theta[i, 0] = b_out
+        all_theta[i, 1:] = w_out
 
     
     return all_theta
@@ -187,6 +183,7 @@ def predictOneVsAll(all_theta, X):
     p : array_like
         The predictions for each data point in X. This is a vector of shape (m, ).
     """
+    p = np.argmax(sigmoid(X @ all_theta[:, 1:].T + all_theta[:, 0]), 1)
 
     return p
 
@@ -220,9 +217,11 @@ def predict(theta1, theta2, X):
 
     return p
 
-data = sio.loadmat('data/ex3data1.mat', squeeze_me=True)
+data = sio.loadmat('p4/data/ex3data1.mat', squeeze_me=True)
 X =  data['X']
 y = data['y']
-oneVsAll(X, y, 10, 1)
+Theta = oneVsAll(X, y, 10, 0.75)
+yP = predictOneVsAll(Theta, X)
+print(yP)
 rand_indices = np.random.choice(X.shape[0], 100, replace=False)
 displayData(X[rand_indices, :])
