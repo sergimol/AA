@@ -214,14 +214,29 @@ def predict(theta1, theta2, X):
         Predictions vector containing the predicted label for each example.
         It has a length equal to the number of examples.
     """
-
-    return p
+    a1 = np.c_[np.ones(len(X)), X]          
+    z2 = np.dot(theta1, a1.T)           
+    a2 = sigmoid(z2)
+    a2 = np.c_[np.ones(len(a2[0])), a2.T]   
+    z3 = np.dot(theta2, a2.T)
+    a3 = sigmoid(z3)                    
+    a3 = np.argmax(a3.T, 1)                 
+    return a3
 
 data = sio.loadmat('p4/data/ex3data1.mat', squeeze_me=True)
 X =  data['X']
 y = data['y']
-Theta = oneVsAll(X, y, 10, 0.75)
-yP = predictOneVsAll(Theta, X)
-print(yP)
-rand_indices = np.random.choice(X.shape[0], 100, replace=False)
-displayData(X[rand_indices, :])
+
+#Theta = oneVsAll(X, y, 10, 0.75)
+#yP = predictOneVsAll(Theta, X)
+
+
+weights = sio.loadmat('p4/data/ex3weights.mat')
+theta1, theta2 = weights['Theta1'], weights['Theta2']
+yP = predict(theta1, theta2, X)
+percent_aux = np.where(y == yP, 1, 0)
+percent = np.sum(percent_aux)
+percent = percent * 100 / len(percent_aux)
+print(percent)
+#rand_indices = np.random.choice(X.shape[0], 100, replace=False)
+#displayData(X[rand_indices, :])
