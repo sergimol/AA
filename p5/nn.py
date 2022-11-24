@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.io as sio
-
+from utils import checkNNGradients
 def sigmoid(z):
     """
     Compute the sigmoid of z
@@ -83,7 +83,7 @@ def cost(theta1, theta2, X, y, lambda_):
     m = len(X)
     
     c = np.sum(y * np.log(a3) + (1 - y) * np.log(1 - a3))
-    l = np.sum((theta1[:, 1:]**2) + np.sum[:, 1:]**2)
+    l = np.sum(theta1[:, 1:]**2) + np.sum(theta2[:, 1:]**2)
 
     J = -c/m + (lambda_/(2*m)*l)
     return J
@@ -130,9 +130,28 @@ def backprop(theta1, theta2, X, y, lambda_):
         It has shape (output layer size x 2nd hidden layer size + 1)
 
     """
+    grad1 = np.zeros([len(theta1), len(theta1[0])])
+    grad2 = np.zeros([len(theta2), len(theta2[0])])
+    m = len(X)
 
+    for i in range(m):
+        a3, a2, a1 = predict(theta1, theta2, [X[i]])
 
-    return (J, grad1, grad2)
+        sigma3 = a3 - y[i]
+        gPrima = a2 * (1 - a2)
+        sigma2 = np.dot(sigma3, theta2) * gPrima
+
+        # sigma es sigma2 sin la primera columna
+        sigma = sigma2[:, 1:]
+
+        grad1 += np.dot(sigma.T, a1)
+        grad2 += np.dot(sigma3.T, a2)
+
+    grad1[:,1:] += lambda_*theta1[:,1:]
+    grad2[:,1:] += lambda_*theta2[:,1:]
+
+    J = cost(theta1, theta2, X, y, lambda_)
+    return (J, grad1 / m, grad2 / m)
 
 data = sio.loadmat('p5/data/ex3data1.mat', squeeze_me=True)
 X = data['X']
@@ -143,5 +162,6 @@ for i in range(len(y)):
 
 weights = sio.loadmat('p5/data/ex3weights.mat')
 theta1, theta2 = weights['Theta1'], weights['Theta2']
-c = cost(theta1, theta2, X, y_hot, 1)
-print(c)
+checkNNGradients(backprop, 1)
+#c = cost(theta1, theta2, X, y_hot, 1)
+#print(c)
